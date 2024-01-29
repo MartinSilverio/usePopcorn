@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import StarRating from './StarRating';
 import { Movie, WatchedMovie } from '../typesAndConstants/types';
 import { KEY } from '../typesAndConstants/constants';
 import Loader from '../widgets/Loader';
 import ErrorMessage from '../widgets/ErrorMessage';
+import { useKey } from '../hooks/useKey';
 
 export default function MovieDetails({
     selectedId,
@@ -20,6 +21,9 @@ export default function MovieDetails({
     const [error, setError] = useState('');
     const [movie, setMovie] = useState<Movie | null>(null);
     const [userRating, setUserRating] = useState<number>(0);
+
+    //Don't want to trigger re-render, since it is not data that will be rendered
+    const countRef = useRef(0);
 
     useEffect(
         function () {
@@ -70,22 +74,13 @@ export default function MovieDetails({
         [movie]
     );
 
+    useKey('Escape', onCloseMovie);
+
     useEffect(
         function () {
-            const callback = (e: KeyboardEvent) => {
-                if (e.code === 'Escape') {
-                    onCloseMovie();
-                    console.log('Closing movie');
-                }
-            };
-
-            document.addEventListener('keydown', callback);
-
-            return () => {
-                document.removeEventListener('keydown', callback);
-            };
+            if (userRating) countRef.current++;
         },
-        [onCloseMovie]
+        [userRating]
     );
 
     function handleAddWatched() {
@@ -98,6 +93,7 @@ export default function MovieDetails({
                 imdbRating: Number(movie.imdbRating),
                 userRating,
                 runtime: Number(movie.Runtime.split(' ').at(0)),
+                countRatingDecision: countRef.current,
             };
             onAddWatched(newWatchedMovie);
             onCloseMovie();

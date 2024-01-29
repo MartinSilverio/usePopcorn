@@ -22,4 +22,5 @@ export type WatchedMovie = Pick<
     imdbRating: number;
     userRating: number;
     runtime: number;
+    countRatingDecision: number;
 };
